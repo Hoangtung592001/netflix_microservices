@@ -1,14 +1,14 @@
 const User = require('../models/User');
 const moment = require('moment');
 const bcrypt = require("bcrypt");
-const validate = require('../utils/validate');
-const token = require('../utils/token');
-class AccountController {
-    home(req, res) {
-        res.send('Hello World!');
-    }
+const validate = require('../helpers/validate');
+const jwt = require("jsonwebtoken");
 
-    async signup(req, res) {
+const AccountController = {
+    // @desc    Get all transactions
+    // @route   GET /api/v1/transactions
+    // @access  Public
+    signup: async (req, res) => {
         try {
             const { firstName, email, password } = req.body;
             const user_email = await User.findOne({ email });
@@ -45,16 +45,16 @@ class AccountController {
         catch(err) {
             return res.status(500).json({ error: true, msg: err.message });
         }
-    }
-
-    async signin(req, res) {
+    },
+    
+    signin: async (req, res) => {
         try {
             const { email, password } = req.body;
             const foundUser = await User.findOne({ email: email })
             if (!foundUser) {
                 return res.json({
                     error: true,
-                    msg: 'User do not exist!'
+                    msg: 'User do not exist! Please, try another one!'
                 });
             }
             const isPasswordValid = await bcrypt.compare(password, foundUser.password);
@@ -65,22 +65,17 @@ class AccountController {
                 })
             }
             else {
-                const refreshToken = token.createRefreshToken({
+                const payload = {
                     id: foundUser._id,
                     isAdmin: foundUser.isAdmin
-                });
-                const accessToken = token.createAccessToken({
-                    id: foundUser._id,
-                    isAdmin: foundUser.isAdmin
-                });
-                res.cookie('refreshToken', refreshToken, {
-                    maxAge: 30 * 24 * 60 * 60 * 1000,
-                    httpOnly: true
-                })
+                }
+                const refreshToken = createRefreshToken(payload);
+                const accessToken = createAccessToken(payload);
                 return res.json({
                     error: false,
                     msg: 'Sign in successfully',
                     accessToken: accessToken,
+                    refreshToken: refreshToken,
                     user: {
                         ...foundUser._doc,
                         password: ""
@@ -94,11 +89,31 @@ class AccountController {
                 msg: err.message
             })
         }
-    }
-
-    signout(req, res, next) {
-
+    },
+    
+    signout: async (req, res) => {
+        try {
+            res.clearCookie('refreshToken');
+            return res.json({
+                error: false,
+                msg: 'Logged out!'
+            });
+        }
+        catch(err) {
+            return res.json({
+                error: true,
+                msg: err.message
+            })
+        }
     }
 }
 
-module.exports = new AccountController();
+createRefreshToken = payload => {
+    return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET)
+};
+
+createAccessToken = payload => {
+    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET)
+};
+
+module.exports = AccountController;
