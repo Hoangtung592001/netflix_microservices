@@ -12,8 +12,8 @@ const axios = require('axios');
 dotenv.config({ path: './config/config.env' });
 
 db.connect();
-app.use(cookieParser());
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 app.use(morgan('combined'));
 app.use('/api', account);

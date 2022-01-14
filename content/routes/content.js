@@ -9,6 +9,9 @@ router
 router
     .route('/content/get_series')
     .get(ContentController.getSeries);
+router
+    .route('/content/search_movies')
+    .post(ContentController.searchMovies)
 
 
 
