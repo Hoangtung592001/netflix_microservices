@@ -1,0 +1,34 @@
+{
+    "services": {
+        "contentService": {
+            "index": 0,
+            "instances": [{
+                "protocol": "http",
+                "host": "localhost",
+                "port": 5002,
+                "apiName": "contentService",
+                "enabled": true,
+                "url": "http://localhost:5002/"
+            }],
+            "loadBalanceStrategy": "ROUND_ROBIN"
+        },
+        "authService": {
+            "index": 0,
+            "instances": [{
+                "protocol": "http",
+                "host": "localhost",
+                "port": 5001,
+                "apiName": "authService",
+                "enabled": true,
+                "url": "http://localhost:5001/"
+            }],
+            "loadBalanceStrategy": "ROUND_ROBIN"
+        }
+    },
+    "auth": {
+        "users": [{
+            "username": "nhtung5901",
+            "password": "0865783836"
+        }]
+    }
+}
